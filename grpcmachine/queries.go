@@ -42,7 +42,7 @@ func (gm *GrpcMachine) QueryNumberOfPools() (uint64, error) {
 	return poolRes.NumPools, nil
 }
 
-func (gm *GrpcMachine) QueryAllPools() []pooltypes.PoolI {
+func (gm *GrpcMachine) QueryAllPools() ([]pooltypes.PoolI, uint64) {
 	poolClient := pooltypes.NewQueryClient(gm.Conn)
 
 	numberOfPools, err := gm.QueryNumberOfPools()
@@ -50,16 +50,18 @@ func (gm *GrpcMachine) QueryAllPools() []pooltypes.PoolI {
 		panic("Could not get Number of pools")
 	}
 
+	var header metadata.MD
+
 	poolRes, err := poolClient.Pools(context.Background(), &pooltypes.QueryPoolsRequest{Pagination: &query.PageRequest{
 		Key:        nil,
 		Offset:     0,
 		Limit:      numberOfPools,
 		CountTotal: false,
 		Reverse:    false,
-	}})
+	}}, grpc.Header(&header))
 	if err != nil {
 		fmt.Println("Error while executing request")
-		return nil
+		return nil, 0
 	}
 
 	var poolI types.PoolI
@@ -69,12 +71,13 @@ func (gm *GrpcMachine) QueryAllPools() []pooltypes.PoolI {
 		err := gm.InterfaceRegistry.UnpackAny(pool, &poolI)
 		if err != nil {
 			fmt.Printf("ERROR WHILE UNPACKING %v\n", err)
-			return nil
+			return nil, 0
 		}
 		pools = append(pools, poolI)
 	}
+	currentHeight, _ := strconv.ParseUint(header.Get(grpctypes.GRPCBlockHeightHeader)[0], 10, 64)
 
-	return pools
+	return pools, currentHeight
 }
 
 func (gm *GrpcMachine) QueryAccountNumber(address string) (accNum uint64) {

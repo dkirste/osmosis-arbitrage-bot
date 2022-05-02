@@ -1,9 +1,12 @@
 package poolstorage
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/dkirste/arbbot/swaproutes"
+)
 
 func (ps *PoolStorage) GenerateThreeCurrencyRoutes() {
-	routes := make([]SwapAmountInRoutesId, 0)
+	routes := make([]swaproutes.SwapAmountInRoutesId, 0)
 
 	firstAssetId := ps.AssetDict.GetId("uosmo")
 	for _, firstPool := range ps.PoolsByAsset[firstAssetId] {
@@ -34,16 +37,16 @@ func (ps *PoolStorage) GenerateThreeCurrencyRoutes() {
 							}
 
 							if fourthAssetId == firstAssetId {
-								arbitrageRoutes := make(SwapAmountInRoutesId, 3)
-								arbitrageRoutes[0] = SwapAmountInRouteId{
+								arbitrageRoutes := make(swaproutes.SwapAmountInRoutesId, 3)
+								arbitrageRoutes[0] = swaproutes.SwapAmountInRouteId{
 									PoolId:        firstPool.GetId(),
 									TokenOutDenom: secondAsset.Token.Denom,
 								}
-								arbitrageRoutes[1] = SwapAmountInRouteId{
+								arbitrageRoutes[1] = swaproutes.SwapAmountInRouteId{
 									PoolId:        secondPool.GetId(),
 									TokenOutDenom: thirdAsset.Token.Denom,
 								}
-								arbitrageRoutes[2] = SwapAmountInRouteId{
+								arbitrageRoutes[2] = swaproutes.SwapAmountInRouteId{
 									PoolId:        thirdPool.GetId(),
 									TokenOutDenom: fourthAsset.Token.Denom, // = firstAsset
 								}
@@ -63,7 +66,7 @@ func (ps *PoolStorage) GenerateThreeCurrencyRoutes() {
 }
 
 func (ps *PoolStorage) GenerateFourCurrencyRoutes() {
-	routes := make([]SwapAmountInRoutesId, 0)
+	routes := make([]swaproutes.SwapAmountInRoutesId, 0)
 
 	firstAssetId := ps.AssetDict.GetId("uosmo")
 	for _, firstPool := range ps.PoolsByAsset[firstAssetId] {
@@ -105,20 +108,20 @@ func (ps *PoolStorage) GenerateFourCurrencyRoutes() {
 									}
 
 									if fifthAssetId == firstAssetId {
-										arbitrageRoutes := make(SwapAmountInRoutesId, 4)
-										arbitrageRoutes[0] = SwapAmountInRouteId{
+										arbitrageRoutes := make(swaproutes.SwapAmountInRoutesId, 4)
+										arbitrageRoutes[0] = swaproutes.SwapAmountInRouteId{
 											PoolId:        firstPool.GetId(),
 											TokenOutDenom: secondAsset.Token.Denom,
 										}
-										arbitrageRoutes[1] = SwapAmountInRouteId{
+										arbitrageRoutes[1] = swaproutes.SwapAmountInRouteId{
 											PoolId:        secondPool.GetId(),
 											TokenOutDenom: thirdAsset.Token.Denom,
 										}
-										arbitrageRoutes[2] = SwapAmountInRouteId{
+										arbitrageRoutes[2] = swaproutes.SwapAmountInRouteId{
 											PoolId:        thirdPool.GetId(),
 											TokenOutDenom: fourthAsset.Token.Denom,
 										}
-										arbitrageRoutes[3] = SwapAmountInRouteId{
+										arbitrageRoutes[3] = swaproutes.SwapAmountInRouteId{
 											PoolId:        fourthPool.GetId(),
 											TokenOutDenom: fifthAsset.Token.Denom, // = firstAsset
 										}
@@ -142,7 +145,7 @@ func (ps *PoolStorage) GenerateFourCurrencyRoutes() {
 }
 
 func (ps *PoolStorage) GenerateFiveCurrencyRoutes() {
-	routes := make([]SwapAmountInRoutesId, 0)
+	routes := make([]swaproutes.SwapAmountInRoutesId, 0)
 
 	firstAssetId := ps.AssetDict.GetId("uosmo")
 	for _, firstPool := range ps.PoolsByAsset[firstAssetId] {
@@ -192,24 +195,24 @@ func (ps *PoolStorage) GenerateFiveCurrencyRoutes() {
 											}
 
 											if sixthAssetId == firstAssetId {
-												arbitrageRoutes := make(SwapAmountInRoutesId, 5)
-												arbitrageRoutes[0] = SwapAmountInRouteId{
+												arbitrageRoutes := make(swaproutes.SwapAmountInRoutesId, 5)
+												arbitrageRoutes[0] = swaproutes.SwapAmountInRouteId{
 													PoolId:        firstPool.GetId(),
 													TokenOutDenom: secondAsset.Token.Denom,
 												}
-												arbitrageRoutes[1] = SwapAmountInRouteId{
+												arbitrageRoutes[1] = swaproutes.SwapAmountInRouteId{
 													PoolId:        secondPool.GetId(),
 													TokenOutDenom: thirdAsset.Token.Denom,
 												}
-												arbitrageRoutes[2] = SwapAmountInRouteId{
+												arbitrageRoutes[2] = swaproutes.SwapAmountInRouteId{
 													PoolId:        thirdPool.GetId(),
 													TokenOutDenom: fourthAsset.Token.Denom,
 												}
-												arbitrageRoutes[3] = SwapAmountInRouteId{
+												arbitrageRoutes[3] = swaproutes.SwapAmountInRouteId{
 													PoolId:        fourthPool.GetId(),
 													TokenOutDenom: fifthAsset.Token.Denom, // = firstAsset
 												}
-												arbitrageRoutes[4] = SwapAmountInRouteId{
+												arbitrageRoutes[4] = swaproutes.SwapAmountInRouteId{
 													PoolId:        fifthPool.GetId(),
 													TokenOutDenom: sixthAsset.Token.Denom, // = firstAsset
 												}
@@ -233,24 +236,24 @@ func (ps *PoolStorage) GenerateFiveCurrencyRoutes() {
 	return
 }
 
-func (ps *PoolStorage) AddGeneratedThreeCurrencyRoutesById(routes []SwapAmountInRoutesId) {
+func (ps *PoolStorage) AddGeneratedThreeCurrencyRoutesById(routes []swaproutes.SwapAmountInRoutesId) {
 	var poolId uint64
 	for _, swapRoutes := range routes {
 		for _, route := range swapRoutes {
 			poolId = route.PoolId
 
 			// Check if array is empty
-			if len(ps.ThreeCurrencyRoutesById[poolId]) == 0 {
-				ps.ThreeCurrencyRoutesById[poolId] = make([]SwapAmountInRoutesId, 0)
+			if len(ps.ArbRoutesById[poolId]) == 0 {
+				ps.ArbRoutesById[poolId] = make([]swaproutes.SwapAmountInRoutesId, 0)
 			}
 
 			// Append route
-			ps.ThreeCurrencyRoutesById[poolId] = append(ps.ThreeCurrencyRoutesById[poolId], swapRoutes)
+			ps.ArbRoutesById[poolId] = append(ps.ArbRoutesById[poolId], swapRoutes)
 
 		}
 	}
 	/* PRINT LOOP
-	for id, swapRoutes := range ps.ThreeCurrencyRoutesById {
+	for id, swapRoutes := range ps.ArbRoutesById {
 		fmt.Printf("%v: %v\n", id, len(swapRoutes))
 	}
 	*/

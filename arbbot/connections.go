@@ -6,10 +6,10 @@ import (
 	"google.golang.org/grpc"
 )
 
-func openGRPCConn(targetIp, targetPort string) *grpc.ClientConn {
+func openGRPCConn(target string) *grpc.ClientConn {
 	grpcConn, _ := grpc.Dial(
-		(targetIp + ":" + targetPort), // Or your gRPC server address.
-		grpc.WithInsecure(),           // The SDK doesn't support any transport security mechanism.
+		(target),            // Or your gRPC server address.
+		grpc.WithInsecure(), // The SDK doesn't support any transport security mechanism.
 	)
 	fmt.Println("Successfully opened grpc")
 	return grpcConn
@@ -23,8 +23,8 @@ func closeGRPCConn(grpcConn *grpc.ClientConn) {
 	fmt.Println("Successfully closed grpc")
 }
 
-func openRPCConn(targetIp string, targetPort string) *rpchttp.HTTP {
-	rpcConn, err := rpchttp.New("tcp://" + targetIp + ":" + targetPort)
+func openRPCConn(target string) *rpchttp.HTTP {
+	rpcConn, err := rpchttp.New(target)
 	if err != nil {
 		fmt.Println(err)
 	}

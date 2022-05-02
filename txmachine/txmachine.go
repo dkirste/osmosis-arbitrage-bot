@@ -3,16 +3,11 @@ package txmachine
 import (
 	"github.com/cosmos/cosmos-sdk/client"
 	"github.com/cosmos/cosmos-sdk/client/tx"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/spf13/pflag"
-	"sync"
 )
 
 type TxMachine struct {
-	Address             sdk.AccAddress
-	Factory             tx.Factory
-	SequenceNumber      uint64
-	SequenceNumberMutex sync.Mutex
+	Factory tx.Factory
 }
 
 func (txm *TxMachine) Setup(clientCtx client.Context) {

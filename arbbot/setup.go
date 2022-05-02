@@ -1,98 +1,81 @@
 package arbbot
 
 import (
-	"fmt"
 	"github.com/cosmos/cosmos-sdk/client"
+	"github.com/cosmos/cosmos-sdk/client/tx"
 	"github.com/cosmos/cosmos-sdk/codec"
-	codectypes "github.com/cosmos/cosmos-sdk/codec/types"
-	"github.com/cosmos/cosmos-sdk/crypto/keyring"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/ed25519"
-	"github.com/cosmos/cosmos-sdk/crypto/keys/secp256k1"
-	cryptotypes "github.com/cosmos/cosmos-sdk/crypto/types"
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	"github.com/cosmos/cosmos-sdk/types/tx/signing"
-	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
-	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	grpcMachine "github.com/dkirste/arbbot/grpcmachine"
+	info "github.com/dkirste/arbbot/infomachine"
+	"github.com/dkirste/arbbot/poolstorage"
+	"github.com/dkirste/arbbot/txmachine"
 	appparams "github.com/osmosis-labs/osmosis/v7/app/params"
-	bpool "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
-	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
-	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
-	"google.golang.org/grpc"
-	"os"
+	"sync"
 )
 
-func setupInterfaceRegistry(encodingConfig appparams.EncodingConfig) codectypes.InterfaceRegistry {
-	interfaceRegistry := encodingConfig.InterfaceRegistry
-
-	interfaceRegistry.RegisterInterface("/osmosis.gamm.v1beta1.PoolI", (*gammtypes.PoolI)(nil))
-	interfaceRegistry.RegisterImplementations((*gammtypes.PoolI)(nil), &bpool.Pool{})
-
-	interfaceRegistry.RegisterInterface("/cosmos.auth.v1beta1.BaseAccount", (*authtypes.AccountI)(nil))
-	interfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &authtypes.BaseAccount{})
-	interfaceRegistry.RegisterImplementations((*cryptotypes.PubKey)(nil), &secp256k1.PubKey{}, &ed25519.PubKey{})
-	interfaceRegistry.RegisterImplementations((*cryptotypes.PrivKey)(nil), &secp256k1.PrivKey{})
-
-	authtypes.RegisterInterfaces(interfaceRegistry)
-	banktypes.RegisterInterfaces(interfaceRegistry)
-	gammtypes.RegisterInterfaces(interfaceRegistry)
-	interfaceRegistry.RegisterImplementations((*sdk.Msg)(nil), &gammtypes.MsgSwapExactAmountIn{})
-
-	return interfaceRegistry
-}
-
-func setupClientContext(grpcclient *grpc.ClientConn, rpcclient *rpchttp.HTTP, address string, nodeIp string) client.Context {
-	var accAddress sdk.AccAddress
-	accAddress, err := sdk.AccAddressFromBech32(address)
-	if err != nil {
-		fmt.Println(err)
-	}
+func (ab *ArbBot) Setup(grpcNodes []string, rpcNodes []string, infoMachineBaseUrl string, address string, privateKeyArmor string, privateKeyPassphrase string, liquidityThreshold float64) ArbBot {
+	ab.ArbAddress = address
 
 	// Setup config, registry and protocodec
-	encodingConfig := appparams.MakeEncodingConfig()
-	interfaceRegistry := setupInterfaceRegistry(encodingConfig)
-	protoCodec := codec.NewProtoCodec(interfaceRegistry)
+	ab.EncodingConfig = appparams.MakeEncodingConfig()
+	ab.InterfaceRegistry = setupInterfaceRegistry(ab.EncodingConfig)
+	ab.ProtoCodec = codec.NewProtoCodec(ab.InterfaceRegistry)
 
-	kb := keyring.NewInMemory(protoCodec)
-	err = kb.ImportPrivKey("arb",
-		"-----BEGIN TENDERMINT PRIVATE KEY-----\nkdf: bcrypt\nsalt: C0F7FAA463DFEC95EC78990480CD23CC\ntype: secp256k1\n\nMDngiOXNmCdHIrFtEdfMkvKM9mlmjhLDIeOFhZPltTw9ogjTnrQin8bcS8BJ48G2\nRLeU9FnEnzSijxk8Zg8JWvFA0TLSsqjR7Mhio7s=\n=FKgG\n-----END TENDERMINT PRIVATE KEY-----",
-		"aoisdhgoiuahjgklasdjkfahsdfaosdfp")
-	if err != nil {
-		panic("Error while importing private key")
+	ab.grpcms = make([]grpcMachine.GrpcMachine, 0)
+	for _, grpcNode := range grpcNodes {
+		grpcConn := openGRPCConn(grpcNode)
+		newGrpcMachine := grpcMachine.GrpcMachine{
+			Conn:              grpcConn,
+			InterfaceRegistry: ab.InterfaceRegistry,
+		}
+		ab.grpcms = append(ab.grpcms, newGrpcMachine)
 	}
 
-	clientCtx := client.Context{
-		FromAddress:       accAddress, // CUSTOM
-		Client:            rpcclient,
-		GRPCClient:        grpcclient,
-		ChainID:           "osmosis-1", //CUSTOM
-		Codec:             codec.NewProtoCodec(interfaceRegistry),
-		InterfaceRegistry: interfaceRegistry, // CUSTOM
-		Input:             nil,
-		Keyring:           kb, // CUSTOM
-		KeyringOptions:    nil,
-		Output:            os.Stdout,
-		OutputFormat:      "",
-		Height:            0,
-		HomeDir:           "",
-		KeyringDir:        "",
-		From:              "arb",   // CUSTOM
-		BroadcastMode:     "async", //CUSTOM
-		FromName:          "arb",
-		SignModeStr:       signing.SignMode_SIGN_MODE_DIRECT.String(), // CUSTOM
-		UseLedger:         false,
-		Simulate:          false,
-		GenerateOnly:      false,
-		Offline:           false,
-		SkipConfirm:       true,                    // CUSTOM
-		TxConfig:          encodingConfig.TxConfig, // CUSTOM
-		AccountRetriever:  authtypes.AccountRetriever{},
-		NodeURI:           nodeIp, // CUSTOM
-		FeePayer:          nil,
-		FeeGranter:        nil,
-		Viper:             nil,
-		IsAux:             false,
-		LegacyAmino:       nil,
+	ab.clientCtxs = make([]client.Context, 0)
+	for _, rpcNode := range rpcNodes {
+		rpcConn := openRPCConn(rpcNode)
+		newClientCtx := ab.setupClientContext(rpcConn, "", privateKeyArmor, privateKeyPassphrase)
+		ab.clientCtxs = append(ab.clientCtxs, newClientCtx)
 	}
 
-	return clientCtx
+	ab.txm = txmachine.TxMachine{
+		Factory: tx.Factory{},
+	}
+	ab.txm.Setup(ab.clientCtxs[0])
+
+	newInfoMachine := info.InfoMachine{BaseUrl: infoMachineBaseUrl}
+
+	ab.whitelist = newInfoMachine.BuildWhitelist(liquidityThreshold)
+
+	newPoolStorage := poolstorage.PoolStorage{
+		PoolsById:           nil,
+		PoolsByAsset:        nil,
+		ThreeCurrencyRoutes: nil,
+		FourCurrencyRoutes:  nil,
+		FiveCurrencyRoutes:  nil,
+		ArbRoutesById:       nil,
+		AssetDict:           poolstorage.AssetDict{},
+		Whitelist:           ab.whitelist,
+	}
+	ab.ps = newPoolStorage
+	ab.ps.Setup(1000)
+	initialPools := ab.grpcms[0].QueryAllPools()
+	ab.ps.AddPools(initialPools)
+	ab.ps.GenerateThreeCurrencyRoutes()
+	ab.ps.GenerateFourCurrencyRoutes()
+	ab.ps.GenerateFiveCurrencyRoutes()
+	ab.ps.AddGeneratedThreeCurrencyRoutesById(ab.ps.ThreeCurrencyRoutes)
+	ab.ps.AddGeneratedThreeCurrencyRoutesById(ab.ps.FourCurrencyRoutes)
+
+	ab.maxReserve = sdk.Coin{}
+	ab.reserveThreshold = sdk.NewInt(1000000)
+
+	ab.currentHeight = 0
+
+	ab.psMutex = sync.Mutex{}
+	ab.executedProfRoutesMutex = sync.Mutex{}
+	ab.sequenceNumberMutex = sync.Mutex{}
+	ab.currentHeightMutex = sync.Mutex{}
+
+	return ArbBot{}
 }
