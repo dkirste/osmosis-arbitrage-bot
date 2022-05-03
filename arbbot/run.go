@@ -2,6 +2,7 @@ package arbbot
 
 import (
 	"fmt"
+	"github.com/dkirste/arbbot/swaproutes"
 
 	grpcMachine "github.com/dkirste/arbbot/grpcmachine"
 	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
@@ -20,6 +21,7 @@ func (ab *ArbBot) Run(numArbWorkers int) {
 
 	for height := range heightCh {
 		fmt.Printf("%v,", height)
+		ab.executedProfRoutes = make(swaproutes.ProfitableArbitrages, 0)
 		for workerId := 0; workerId < numArbWorkers; workerId++ {
 			go ab.EvaluateArbitrage(workerId, numArbWorkers)
 		}
