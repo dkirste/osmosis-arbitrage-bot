@@ -7,10 +7,13 @@ import (
 )
 
 func openGRPCConn(target string) *grpc.ClientConn {
-	grpcConn, _ := grpc.Dial(
+	grpcConn, err := grpc.Dial(
 		(target),            // Or your gRPC server address.
 		grpc.WithInsecure(), // The SDK doesn't support any transport security mechanism.
 	)
+	if err != nil {
+		fmt.Println(err)
+	}
 	fmt.Println("Successfully opened grpc")
 	return grpcConn
 }

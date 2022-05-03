@@ -35,7 +35,7 @@ func (gm *GrpcMachine) QueryNumberOfPools() (uint64, error) {
 
 	poolRes, err := poolClient.NumPools(context.Background(), &pooltypes.QueryNumPoolsRequest{})
 	if err != nil {
-		fmt.Println("Error while executing request (QueryNumberOfPools)")
+		//fmt.Println("Error while executing request (QueryNumberOfPools)")
 		return 0, err
 	}
 
@@ -112,8 +112,11 @@ func (gm *GrpcMachine) QueryCurrentHeight() (currentHeight uint64) {
 	// Get header from grpc via grpc option
 	var header metadata.MD
 
-	poolRes, _ := poolClient.NumPools(context.Background(), &pooltypes.QueryNumPoolsRequest{}, grpc.Header(&header))
+	poolRes, err := poolClient.NumPools(context.Background(), &pooltypes.QueryNumPoolsRequest{}, grpc.Header(&header))
 	_ = poolRes
+	if err != nil {
+		panic(err)
+	}
 
 	currentHeight, _ = strconv.ParseUint(header.Get(grpctypes.GRPCBlockHeightHeader)[0], 10, 64)
 	return

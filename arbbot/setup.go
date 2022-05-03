@@ -57,15 +57,17 @@ func (ab *ArbBot) Setup(grpcNodes []string, rpcNodes []string, infoMachineBaseUr
 		AssetDict:           poolstorage.AssetDict{},
 		Whitelist:           ab.whitelist,
 	}
+
 	ab.ps = newPoolStorage
 	ab.ps.Setup(1000)
-	initialPools := ab.grpcms[0].QueryAllPools()
+	initialPools, currentHeight := ab.grpcms[0].QueryAllPools()
 	ab.ps.AddPools(initialPools)
 	ab.ps.GenerateThreeCurrencyRoutes()
 	ab.ps.GenerateFourCurrencyRoutes()
 	ab.ps.GenerateFiveCurrencyRoutes()
 	ab.ps.AddGeneratedThreeCurrencyRoutesById(ab.ps.ThreeCurrencyRoutes)
 	ab.ps.AddGeneratedThreeCurrencyRoutesById(ab.ps.FourCurrencyRoutes)
+	ab.currentHeight = currentHeight
 
 	ab.maxReserve = sdk.Coin{}
 	ab.reserveThreshold = sdk.NewInt(1000000)

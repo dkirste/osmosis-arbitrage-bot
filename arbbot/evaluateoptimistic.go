@@ -40,7 +40,8 @@ func (ab *ArbBot) EvaluateOptimisticAndExecute(poolIds []uint64, txm *txmachine.
 					// EXECUTE ARBITRAGE ASAP
 
 					arbMsg := ab.BuildSwapExactAmountInMsg(clientCtx, route, optimumIn, optimumIn.Amount)
-					err := txm.GenerateBroadcastTxEstimateGas(clientCtx, currentHeight, seq, arbMsg)
+					//err := txm.GenerateBroadcastTxEstimateGas(clientCtx, currentHeight, seq, arbMsg)
+					err := arbMsg
 					if err != nil {
 						fmt.Printf("Error: %v\n", err)
 					} else {

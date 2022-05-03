@@ -44,9 +44,10 @@ func (ab *ArbBot) EvaluateArbitrage(ownId int, maxId int) (profitableRoutes swap
 					// Check if there was no more profitable arb already executed.
 					if !ab.executedProfRoutes.CheckIfMoreProfitableRouteWasAlreadyExecuted(profitableArbitrage) {
 						// EXECUTE ARBITRAGE
-						arbMsg := ab.BuildSwapExactAmountInMsg(clientCtx, route, optimumIn, optimumIn.Amount) // Using inputCoin.Amount to min(losses)
+						arbMsg := ab.BuildSwapExactAmountInMsg(ab.clientCtxs[0], route, optimumIn, optimumIn.Amount) // Using inputCoin.Amount to min(losses)
 
-						err := ab.GenerateBroadcastTxEstimateGas(clientCtx, currentHeight, txm.SequenceNumber, arbMsg)
+						//err := ab.GenerateBroadcastTx(clientCtx, currentHeight, txm.SequenceNumber, arbMsg)
+						err := arbMsg
 						if err != nil {
 							fmt.Printf("Error:  %v\n", err)
 						} else {
