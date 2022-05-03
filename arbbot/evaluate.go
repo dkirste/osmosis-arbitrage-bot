@@ -1,13 +1,12 @@
 package arbbot
 
 import (
-	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dkirste/arbbot/swaproutes"
 )
 
 func (ab *ArbBot) EvaluateArbitrage(ownId int, maxId int) (profitableRoutes swaproutes.ProfitableArbitrages) {
-	var gasEstimate int64 = 2000
+	var gasEstimate int64 = 1750
 	//var allRoutes = [][]SwapAmountInRoutesId{ab.ThreeCurrencyRoutes, ab.FourCurrencyRoutes, ab.FiveCurrencyRoutes}
 	var allRoutes = [][]swaproutes.SwapAmountInRoutesId{ab.ps.ThreeCurrencyRoutes, ab.ps.FourCurrencyRoutes, ab.ps.FiveCurrencyRoutes}
 	profitableRoutes = make([]swaproutes.ProfitableArbitrage, 0)
@@ -44,20 +43,7 @@ func (ab *ArbBot) EvaluateArbitrage(ownId int, maxId int) (profitableRoutes swap
 					// Check if there was no more profitable arb already executed.
 					if !ab.executedProfRoutes.CheckIfMoreProfitableRouteWasAlreadyExecuted(profitableArbitrage) {
 						// EXECUTE ARBITRAGE
-						arbMsg := ab.BuildSwapExactAmountInMsg(ab.clientCtxs[0], route, optimumIn, optimumIn.Amount) // Using inputCoin.Amount to min(losses)
-
-						//err := ab.GenerateBroadcastTx(clientCtx, currentHeight, txm.SequenceNumber, arbMsg)
-						err := arbMsg
-						if err != nil {
-							fmt.Printf("Error:  %v\n", err)
-						} else {
-							ab.executedProfRoutesMutex.Lock()
-							ab.executedProfRoutes = append(ab.executedProfRoutes, profitableArbitrage)
-							ab.executedProfRoutesMutex.Unlock()
-							ab.sequenceNumberMutex.Lock()
-							ab.sequenceNumber = ab.sequenceNumber + 1
-							ab.sequenceNumberMutex.Unlock()
-						}
+						ab.GenerateAndSendToAllRPCEndpoints(profitableArbitrage)
 					}
 
 				}

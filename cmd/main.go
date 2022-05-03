@@ -18,7 +18,7 @@ func main() {
 
 	bot := arbbot.ArbBot{}
 	bot.Setup(grpcNodes, rpcNodes, infoMachineBaseUrl, address, privateKeyArmor, privateKeyPassphrase, liquidityThreshold)
-	bot.Run()
+	bot.Run(6)
 
 	return
 }

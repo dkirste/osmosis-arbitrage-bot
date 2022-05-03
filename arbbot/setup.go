@@ -69,7 +69,7 @@ func (ab *ArbBot) Setup(grpcNodes []string, rpcNodes []string, infoMachineBaseUr
 	ab.ps.AddGeneratedThreeCurrencyRoutesById(ab.ps.FourCurrencyRoutes)
 	ab.currentHeight = currentHeight
 
-	ab.maxReserve = sdk.Coin{}
+	ab.maxReserve = ab.grpcms[0].QueryAccountBalance(ab.ArbAddress, "uosmo")
 	ab.reserveThreshold = sdk.NewInt(1000000)
 
 	ab.currentHeight = 0

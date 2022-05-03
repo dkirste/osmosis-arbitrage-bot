@@ -2,7 +2,6 @@ package poolstorage
 
 import (
 	"fmt"
-	sdk "github.com/cosmos/cosmos-sdk/types"
 	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
 
@@ -47,9 +46,4 @@ func (ps *PoolStorage) UpdatePools(poolsToUpdate []gammtypes.PoolI) {
 	for _, pool := range poolsToUpdate {
 		ps.updatePool(pool)
 	}
-}
-
-func (ps *PoolStorage) UpdateMaxReserve(newReserve sdk.Coin) {
-	ps.MaxReserve = newReserve
-	return
 }

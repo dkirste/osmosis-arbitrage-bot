@@ -51,7 +51,7 @@ func (ab *ArbBot) FindOptimumMultihopUOsmo(arbitrageRoutes []swaproutes.SwapAmou
 	var adjustment = sdk.NewInt(1000000)
 	var profit sdk.Int
 
-	tokenIn = ab.ps.MaxReserve.SubAmount(ab.ps.ReserveThreshold)
+	tokenIn = ab.maxReserve.SubAmount(ab.reserveThreshold)
 	tokenOutAmount = ab.CalculateMultihopSwapExactAmountIn(arbitrageRoutes, tokenIn)
 	profit = tokenOutAmount.Sub(tokenIn.Amount)
 
@@ -82,7 +82,7 @@ func (ab *ArbBot) FindOptimumMultihopUOsmo(arbitrageRoutes []swaproutes.SwapAmou
 
 func (ab *ArbBot) FindOptimumFullScan(arbitrageRoutes []swaproutes.SwapAmountInRouteId) (tokenIn sdk.Coin, tokenOutAmount sdk.Int) {
 	var profitsArray []sdk.Int = make([]sdk.Int, 0)
-	var adjustment = sdk.NewInt(100000)
+	var adjustment = sdk.NewInt(10000)
 	var tmpTokenIn sdk.Coin
 	var tmpTokenOutAmount sdk.Int
 	var tmpProfit sdk.Int
@@ -91,8 +91,7 @@ func (ab *ArbBot) FindOptimumFullScan(arbitrageRoutes []swaproutes.SwapAmountInR
 		Denom:  "uosmo",
 		Amount: adjustment,
 	}
-
-	for tmpTokenIn.IsLTE(ab.ps.MaxReserve) {
+	for tmpTokenIn.IsLTE(ab.maxReserve) {
 		tmpTokenOutAmount = ab.CalculateMultihopSwapExactAmountIn(arbitrageRoutes, tmpTokenIn)
 		tmpProfit = tmpTokenOutAmount.Sub(tmpTokenIn.Amount)
 		profitsArray = append(profitsArray, tmpProfit)

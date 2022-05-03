@@ -7,7 +7,7 @@ import (
 	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
 
-func (ab *ArbBot) Run() {
+func (ab *ArbBot) Run(numArbWorkers int) {
 	heightCh := make(chan uint64)
 	for _, grpcm := range ab.grpcms {
 		grpcmPerLoop := grpcm
@@ -17,8 +17,12 @@ func (ab *ArbBot) Run() {
 			}
 		}()
 	}
+
 	for height := range heightCh {
 		fmt.Printf("%v,", height)
+		for workerId := 0; workerId < numArbWorkers; workerId++ {
+			go ab.EvaluateArbitrage(workerId, numArbWorkers)
+		}
 	}
 	return
 }
@@ -45,6 +49,8 @@ func (ab *ArbBot) PoolUpdateLoop(grpcm grpcMachine.GrpcMachine, heightCh chan<- 
 			ab.sequenceNumber = grpcm.QueryAccountSequence(ab.ArbAddress)
 			fmt.Printf("\n%v: ", grpcm.Conn.Target())
 			heightCh <- latestHeight
+
+			ab.maxReserve = grpcm.QueryAccountBalance(ab.ArbAddress, "uosmo")
 		}
 	}
 }
