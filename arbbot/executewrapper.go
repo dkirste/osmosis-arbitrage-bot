@@ -10,8 +10,10 @@ func (ab *ArbBot) GenerateAndSendToAllRPCEndpoints(profRoute swaproutes.Profitab
 
 	for _, clientCtx := range ab.clientCtxs {
 		clientCtxPerLoop := clientCtx
+		// Safe seq otherwise it gets increased beforehand
+		seq := ab.sequenceNumber
 		go func() {
-			err := ab.txm.GenerateBroadcastTx(clientCtxPerLoop, ab.currentHeight, ab.sequenceNumber, arbMsg)
+			err := ab.txm.GenerateBroadcastTx(clientCtxPerLoop, ab.currentHeight, seq, arbMsg)
 
 			if err != nil {
 				fmt.Printf("\nCould not send tx to:  %v\n", clientCtxPerLoop.Client)

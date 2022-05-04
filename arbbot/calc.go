@@ -82,7 +82,7 @@ func (ab *ArbBot) FindOptimumMultihopUOsmo(arbitrageRoutes []swaproutes.SwapAmou
 
 func (ab *ArbBot) FindOptimumFullScan(arbitrageRoutes []swaproutes.SwapAmountInRouteId) (tokenIn sdk.Coin, tokenOutAmount sdk.Int) {
 	var profitsArray []sdk.Int = make([]sdk.Int, 0)
-	var adjustment = sdk.NewInt(10000)
+	var adjustment = sdk.NewInt(1000000)
 	var tmpTokenIn sdk.Coin
 	var tmpTokenOutAmount sdk.Int
 	var tmpProfit sdk.Int
