@@ -2,7 +2,9 @@ package arbbot
 
 import (
 	"fmt"
+	grpcMachine "github.com/dkirste/arbbot/grpcmachine"
 	"github.com/dkirste/arbbot/swaproutes"
+	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
 )
 
 func (ab *ArbBot) GenerateAndSendToAllRPCEndpoints(profRoute swaproutes.ProfitableArbitrage) {
@@ -26,4 +28,32 @@ func (ab *ArbBot) GenerateAndSendToAllRPCEndpoints(profRoute swaproutes.Profitab
 	ab.sequenceNumberMutex.Lock()
 	ab.sequenceNumber = ab.sequenceNumber + 1
 	ab.sequenceNumberMutex.Unlock()
+}
+
+func (ab *ArbBot) PoolUpdateLoop(grpcm grpcMachine.GrpcMachine, heightCh chan<- uint64) (crashed bool) {
+	var latestPools []gammtypes.PoolI
+	var latestHeight uint64
+	for {
+		defer func() {
+			if err := recover(); err != nil {
+				crashed = true
+			}
+		}()
+		latestPools, latestHeight = grpcm.QueryAllPools()
+		if latestHeight > ab.currentHeight {
+			ab.currentHeightMutex.Lock()
+			ab.currentHeight = latestHeight
+			ab.currentHeightMutex.Unlock()
+
+			ab.psMutex.Lock()
+			ab.ps.UpdatePools(latestPools)
+			ab.psMutex.Unlock()
+
+			ab.sequenceNumber = grpcm.QueryAccountSequence(ab.ArbAddress)
+			fmt.Printf("\n%v: ", grpcm.Conn.Target())
+			heightCh <- latestHeight
+
+			ab.maxReserve = grpcm.QueryAccountBalance(ab.ArbAddress, "uosmo")
+		}
+	}
 }
