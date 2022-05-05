@@ -131,7 +131,6 @@ func (ab *ArbBot) ScanMempoolLoop(rpcConnMem *rpchttp.HTTP, scanThreshold int64,
 							for workerId := 0; workerId < numArbWorkers; workerId++ {
 								go ab.EvaluateOptimistic(workerId, numArbWorkers, involvedPools)
 							}
-
 						}
 					}
 				}

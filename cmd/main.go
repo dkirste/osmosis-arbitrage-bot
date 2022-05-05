@@ -37,14 +37,14 @@ func main() {
 	//rpcNodes = []string{"tcp://46.38.245.118:26657"}
 	infoMachineBaseUrl := "https://api-osmosis.imperator.co"
 
-	address, privateKeyArmor, privateKeyPassphrase := mywallet.GetPrivateKey("test")
+	address, privateKeyArmor, privateKeyPassphrase := mywallet.GetPrivateKey("prod")
 
 	var liquidityThreshold float64 = 10
 
 	bot := arbbot.ArbBot{}
 	bot.Setup(grpcNodes, rpcNodes, infoMachineBaseUrl, address, privateKeyArmor, privateKeyPassphrase, liquidityThreshold)
-	bot.RunBlockArb(6)
-	//bot.RunMempoolArb(4, 1000)
+	//bot.RunBlockArb(6)
+	bot.RunMempoolArb(4, 1000)
 
 	return
 }
