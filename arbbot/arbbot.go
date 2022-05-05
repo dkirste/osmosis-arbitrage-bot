@@ -16,24 +16,29 @@ import (
 )
 
 type ArbBot struct {
-	im                      info.InfoMachine
-	txm                     txmachine.TxMachine
-	clientCtxs              []client.Context
-	grpcms                  []grpcMachine.GrpcMachine
-	mps                     []rpchttp.HTTP
-	psMutex                 sync.Mutex
-	ps                      poolstorage.PoolStorage
-	maxReserve              sdk.Coin
-	reserveThreshold        sdk.Int
-	whitelist               []uint64
-	executedProfRoutes      swaproutes.ProfitableArbitrages
-	executedProfRoutesMutex sync.Mutex
-	sequenceNumber          uint64
-	sequenceNumberMutex     sync.Mutex
-	currentHeight           uint64
-	currentHeightMutex      sync.Mutex
-	EncodingConfig          appparams.EncodingConfig
-	InterfaceRegistry       codectypes.InterfaceRegistry
-	ProtoCodec              *codec.ProtoCodec
-	ArbAddress              string
+	EncodingConfig                appparams.EncodingConfig
+	InterfaceRegistry             codectypes.InterfaceRegistry
+	ProtoCodec                    *codec.ProtoCodec
+	ArbAddress                    string
+	im                            info.InfoMachine
+	txm                           txmachine.TxMachine
+	clientCtxs                    []client.Context
+	grpcms                        []grpcMachine.GrpcMachine
+	mempoolRPCs                   []*rpchttp.HTTP
+	psMutex                       sync.Mutex
+	ps                            poolstorage.PoolStorage
+	maxReserve                    sdk.Coin
+	reserveThreshold              sdk.Int
+	whitelist                     []uint64
+	executedProfRoutes            swaproutes.ProfitableArbitrages
+	executedProfRoutesMutex       sync.Mutex
+	sequenceNumber                uint64
+	sequenceNumberMutex           sync.Mutex
+	currentHeight                 uint64
+	currentHeightMutex            sync.Mutex
+	executedOptimisticRoutes      swaproutes.ProfitableArbitrages
+	executedOptimisticRoutesMutex sync.Mutex
+	analysedTxs                   []string
+	analysedTxsMutex              sync.Mutex
+	priceOracle                   map[string]info.TokenPriceResponse
 }

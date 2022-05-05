@@ -1,10 +1,15 @@
 package arbbot
 
 import (
+	"context"
 	"fmt"
+	"github.com/cosmos/cosmos-sdk/server/rosetta"
+	sdk "github.com/cosmos/cosmos-sdk/types"
 	grpcMachine "github.com/dkirste/arbbot/grpcmachine"
 	"github.com/dkirste/arbbot/swaproutes"
 	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
+	"math"
 )
 
 func (ab *ArbBot) GenerateAndSendToAllRPCEndpoints(profRoute swaproutes.ProfitableArbitrage) {
@@ -54,6 +59,84 @@ func (ab *ArbBot) PoolUpdateLoop(grpcm grpcMachine.GrpcMachine, heightCh chan<- 
 			heightCh <- latestHeight
 
 			ab.maxReserve = grpcm.QueryAccountBalance(ab.ArbAddress, "uosmo")
+		}
+	}
+}
+
+func (ab *ArbBot) ScanMempoolLoop(rpcConnMem *rpchttp.HTTP, scanThreshold int64, numArbWorkers int) (crashed bool) {
+	defer func() {
+		if err := recover(); err != nil {
+			crashed = true
+		}
+	}()
+
+	var limit = 1000
+	var tokenIn sdk.Coin
+	var tokenInAmountUSD sdk.Int
+
+	var c = rosetta.NewConverter(ab.ProtoCodec, ab.InterfaceRegistry, ab.EncodingConfig.TxConfig)
+	var ctx = context.Background()
+
+	// Run forever
+	for {
+		txs, err := rpcConnMem.UnconfirmedTxs(ctx, &limit)
+		if err != nil {
+			//fmt.Printf("\nCould not get unconfirmed txs from %v.\n", rpcConnMem)
+			return true
+		}
+
+	unconfirmedTxLoop:
+		for _, unconfirmedTx := range txs.Txs {
+			for _, analysedTx := range ab.analysedTxs {
+				if analysedTx == string(unconfirmedTx.Hash()) {
+					continue unconfirmedTxLoop
+				}
+			}
+			// Add tx to analysed txs
+			ab.analysedTxsMutex.Lock()
+			ab.analysedTxs = append(ab.analysedTxs, string(unconfirmedTx.Hash()))
+			ab.analysedTxsMutex.Unlock()
+
+			fmt.Printf(".")
+			transaction, err := c.ToRosetta().Tx(unconfirmedTx, nil)
+			if err != nil {
+				continue
+			}
+
+			unsignedTx, _ := c.ToSDK().UnsignedTx(transaction.Operations)
+			for _, msg := range unsignedTx.GetMsgs() {
+				switch swapExactAmountInMsg := msg.(type) {
+				case *gammtypes.MsgSwapExactAmountIn:
+					tokenIn = swapExactAmountInMsg.TokenIn
+					if _, ok := ab.priceOracle[tokenIn.Denom]; !ok {
+						// Denom was not included in price oracle.
+						fmt.Printf("\nDenom of token not found in priceOracle (%v)\n", tokenIn.Denom)
+						break
+					}
+
+					// Check for arbitrage txs
+					if swapExactAmountInMsg.TokenIn.Denom == swapExactAmountInMsg.TokenOutDenom() {
+						//fmt.Println("Arbitrage transaction in mempool spotted!!")
+						continue unconfirmedTxLoop
+					}
+
+					tokenInAmountUSD = tokenIn.Amount.Mul(sdk.NewInt(ab.priceOracle[tokenIn.Denom].PriceE6)).Quo(sdk.NewInt(int64(math.Pow10(ab.priceOracle[tokenIn.Denom].Exponent + 6))))
+
+					if tokenInAmountUSD.GT(sdk.NewInt(scanThreshold)) {
+						fmt.Printf("#")
+						//fmt.Printf("\n%v\n", swapExactAmountInMsg)
+						involvedPools, failed := ab.ps.UpdatePoolOptimistically(*swapExactAmountInMsg)
+						if failed == nil {
+							// Scan for arb and execute!
+							for workerId := 0; workerId < numArbWorkers; workerId++ {
+								go ab.EvaluateOptimistic(workerId, numArbWorkers, involvedPools)
+							}
+
+						}
+					}
+				}
+			}
+
 		}
 	}
 }

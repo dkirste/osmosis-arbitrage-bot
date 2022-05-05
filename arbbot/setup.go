@@ -10,6 +10,7 @@ import (
 	"github.com/dkirste/arbbot/poolstorage"
 	"github.com/dkirste/arbbot/txmachine"
 	appparams "github.com/osmosis-labs/osmosis/v7/app/params"
+	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"sync"
 )
 
@@ -38,14 +39,22 @@ func (ab *ArbBot) Setup(grpcNodes []string, rpcNodes []string, infoMachineBaseUr
 		ab.clientCtxs = append(ab.clientCtxs, newClientCtx)
 	}
 
+	ab.mempoolRPCs = make([]*rpchttp.HTTP, 0)
+	for _, rpcNode := range rpcNodes {
+		rpcConn := openRPCConn(rpcNode)
+		ab.mempoolRPCs = append(ab.mempoolRPCs, rpcConn)
+	}
+
 	ab.txm = txmachine.TxMachine{
 		Factory: tx.Factory{},
 	}
 	ab.txm.Setup(ab.clientCtxs[0])
 
 	newInfoMachine := info.InfoMachine{BaseUrl: infoMachineBaseUrl}
+	ab.im = newInfoMachine
 
-	ab.whitelist = newInfoMachine.BuildWhitelist(liquidityThreshold)
+	ab.whitelist = ab.im.BuildWhitelist(liquidityThreshold)
+	ab.priceOracle = ab.im.GetAllTokenPrices()
 
 	newPoolStorage := poolstorage.PoolStorage{
 		PoolsById:           nil,
@@ -64,7 +73,7 @@ func (ab *ArbBot) Setup(grpcNodes []string, rpcNodes []string, infoMachineBaseUr
 	ab.ps.AddPools(initialPools)
 	ab.ps.GenerateThreeCurrencyRoutes()
 	ab.ps.GenerateFourCurrencyRoutes()
-	ab.ps.GenerateFiveCurrencyRoutes()
+	//ab.ps.GenerateFiveCurrencyRoutes()
 	ab.ps.AddGeneratedThreeCurrencyRoutesById(ab.ps.ThreeCurrencyRoutes)
 	ab.ps.AddGeneratedThreeCurrencyRoutesById(ab.ps.FourCurrencyRoutes)
 	ab.currentHeight = currentHeight
@@ -76,6 +85,7 @@ func (ab *ArbBot) Setup(grpcNodes []string, rpcNodes []string, infoMachineBaseUr
 
 	ab.psMutex = sync.Mutex{}
 	ab.executedProfRoutesMutex = sync.Mutex{}
+	ab.executedOptimisticRoutesMutex = sync.Mutex{}
 	ab.sequenceNumberMutex = sync.Mutex{}
 	ab.currentHeightMutex = sync.Mutex{}
 
