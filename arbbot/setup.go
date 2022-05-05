@@ -71,9 +71,11 @@ func (ab *ArbBot) Setup(grpcNodes []string, rpcNodes []string, infoMachineBaseUr
 	ab.ps.Setup(1000)
 	initialPools, currentHeight := ab.grpcms[0].QueryAllPools()
 	ab.ps.AddPools(initialPools)
+	ab.ps.GenerateTwoCurrencyRoutes()
 	ab.ps.GenerateThreeCurrencyRoutes()
 	ab.ps.GenerateFourCurrencyRoutes()
 	//ab.ps.GenerateFiveCurrencyRoutes()
+	ab.ps.AddGeneratedThreeCurrencyRoutesById(ab.ps.TwoCurrencyRoutes)
 	ab.ps.AddGeneratedThreeCurrencyRoutesById(ab.ps.ThreeCurrencyRoutes)
 	ab.ps.AddGeneratedThreeCurrencyRoutesById(ab.ps.FourCurrencyRoutes)
 	ab.currentHeight = currentHeight

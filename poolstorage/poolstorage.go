@@ -8,6 +8,7 @@ import (
 type PoolStorage struct {
 	PoolsById           []gammtypes.PoolI
 	PoolsByAsset        [][]gammtypes.PoolI
+	TwoCurrencyRoutes   []swaproutes.SwapAmountInRoutesId
 	ThreeCurrencyRoutes []swaproutes.SwapAmountInRoutesId
 	FourCurrencyRoutes  []swaproutes.SwapAmountInRoutesId
 	FiveCurrencyRoutes  []swaproutes.SwapAmountInRoutesId

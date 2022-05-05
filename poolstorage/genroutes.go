@@ -5,6 +5,50 @@ import (
 	"github.com/dkirste/arbbot/swaproutes"
 )
 
+func (ps *PoolStorage) GenerateTwoCurrencyRoutes() {
+	routes := make([]swaproutes.SwapAmountInRoutesId, 0)
+
+	firstAssetId := ps.AssetDict.GetId("uosmo")
+	for _, firstPool := range ps.PoolsByAsset[firstAssetId] {
+		for _, secondAsset := range firstPool.GetAllPoolAssets() {
+			secondAssetId := ps.AssetDict.GetId(secondAsset.Token.Denom)
+			// Loop protection
+			if secondAssetId == firstAssetId {
+				continue
+			}
+
+			for _, secondPool := range ps.PoolsByAsset[secondAssetId] {
+				for _, thirdAsset := range secondPool.GetAllPoolAssets() {
+					thirdAssetId := ps.AssetDict.GetId(thirdAsset.Token.Denom)
+					// Loop protection
+					if thirdAssetId == secondAssetId {
+						continue
+					}
+					if thirdAssetId == firstAssetId {
+						arbitrageRoutes := make(swaproutes.SwapAmountInRoutesId, 2)
+						arbitrageRoutes[0] = swaproutes.SwapAmountInRouteId{
+							PoolId:        firstPool.GetId(),
+							TokenOutDenom: secondAsset.Token.Denom,
+						}
+						arbitrageRoutes[1] = swaproutes.SwapAmountInRouteId{
+							PoolId:        secondPool.GetId(),
+							TokenOutDenom: thirdAsset.Token.Denom,
+						}
+
+						if arbitrageRoutes.CheckIfPoolsAreUnique() {
+							routes = append(routes, arbitrageRoutes)
+						}
+					}
+
+				}
+			}
+		}
+	}
+	fmt.Println("TwoCurrency Number: ", len(routes))
+	ps.TwoCurrencyRoutes = routes
+	return
+}
+
 func (ps *PoolStorage) GenerateThreeCurrencyRoutes() {
 	routes := make([]swaproutes.SwapAmountInRoutesId, 0)
 
