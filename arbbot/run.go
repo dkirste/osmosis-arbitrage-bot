@@ -12,6 +12,7 @@ func (ab *ArbBot) RunBlockArb(numArbWorkers int) {
 		go func() {
 			for {
 				_ = ab.PoolUpdateLoop(grpcmPerLoop, heightCh)
+				fmt.Printf("GRPC banned by: %v\n", grpcmPerLoop.Conn.Target())
 			}
 		}()
 	}

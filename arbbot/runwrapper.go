@@ -81,7 +81,7 @@ func (ab *ArbBot) ScanMempoolLoop(rpcConnMem *rpchttp.HTTP, scanThreshold int64,
 	for {
 		txs, err := rpcConnMem.UnconfirmedTxs(ctx, &limit)
 		if err != nil {
-			//fmt.Printf("\nCould not get unconfirmed txs from %v.\n", rpcConnMem)
+			fmt.Printf("API banned by %v\n", rpcConnMem)
 			return true
 		}
 
@@ -111,7 +111,14 @@ func (ab *ArbBot) ScanMempoolLoop(rpcConnMem *rpchttp.HTTP, scanThreshold int64,
 					if _, ok := ab.priceOracle[tokenIn.Denom]; !ok {
 						// Denom was not included in price oracle.
 						fmt.Printf("\nDenom of token not found in priceOracle (%v)\n", tokenIn.Denom)
-						break
+						fmt.Printf("#")
+						involvedPools, failed := ab.ps.UpdatePoolOptimistically(*swapExactAmountInMsg)
+						if failed == nil {
+							// Scan for arb and execute!
+							for workerId := 0; workerId < numArbWorkers; workerId++ {
+								go ab.EvaluateOptimistic(workerId, numArbWorkers, involvedPools)
+							}
+						}
 					}
 
 					// Check for arbitrage txs
