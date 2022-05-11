@@ -8,16 +8,16 @@ import (
 func main() {
 	grpcNodes := []string{"46.38.245.118:9090",
 		"osmosis.strange.love:9090",
-		"37.120.165.37:9090",
+		//"37.120.165.37:9090",
 		"34.68.29.156:9090",
-		//"135.148.55.229:9090", //slow connection
-		//"107.178.208.25:9090", //slow connection
+		"135.148.55.229:9090", //slow connection
+		"107.178.208.25:9090", //slow connection
 		"35.222.218.55:9090",
 		"65.108.101.53:9090",
 		"65.21.34.249:9090",
 		//"161.35.88.220:9090",
-		"141.95.86.126:9090",
-		"34.220.67.127:9090",
+		//"141.95.86.126:9090",
+		//"34.220.67.127:9090",
 		//"65.108.127.166:9090", ///sometimes down
 		//"65.108.101.108:9090", //sometimes down
 		//"65.21.198.130:9090", maybe atom
@@ -32,7 +32,7 @@ func main() {
 	}
 	//grpcNodes = []string{"37.120.165.37:9090"}
 	rpcNodes := []string{"tcp://46.38.245.118:26657",
-		"tcp://37.120.165.37:26657",
+		//"tcp://37.120.165.37:26657",
 		"https://rpc-osmosis.ecostake.com:443",
 		"https://osmosis.validator.network:443", // banning mempool scan
 		"http://34.68.29.156:26657",
@@ -42,7 +42,7 @@ func main() {
 		"http://65.108.127.166:26657", //sometimes down
 		"http://65.108.101.108:26657", //sometimes down
 		"http://65.21.198.130:36657",
-		"http://45.34.1.114:26657",
+		//"http://45.34.1.114:26657", // cosmoshub
 		"http://35.222.218.55:26657", //down 05.05.22
 		"http://65.108.101.53:26657",
 		"http://65.21.34.249:26657",
@@ -60,14 +60,14 @@ func main() {
 	//rpcNodes = []string{"tcp://46.38.245.118:26657"}
 	infoMachineBaseUrl := "https://api-osmosis.imperator.co"
 
-	address, privateKeyArmor, privateKeyPassphrase := mywallet.GetPrivateKey("mempoolarb")
+	address, privateKeyArmor, privateKeyPassphrase := mywallet.GetPrivateKey("test")
 
-	var liquidityThreshold float64 = 10
+	var liquidityThreshold float64 = 750
 
 	bot := arbbot.ArbBot{}
 	bot.Setup(grpcNodes, rpcNodes, infoMachineBaseUrl, address, privateKeyArmor, privateKeyPassphrase, liquidityThreshold)
-	//bot.RunBlockArb(6)
-	bot.RunMempoolArb(4, 1000)
+	bot.RunBlockArb(6)
+	//bot.RunMempoolArb(4, 1000)
 
 	return
 }

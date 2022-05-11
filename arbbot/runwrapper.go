@@ -13,6 +13,7 @@ import (
 )
 
 func (ab *ArbBot) GenerateAndSendToAllRPCEndpoints(profRoute swaproutes.ProfitableArbitrage) {
+	numPools := len(profRoute.Route)
 	arbMsg := ab.BuildSwapExactAmountInMsg(ab.clientCtxs[0], profRoute.Route, profRoute.OptimumInToken, profRoute.OptimumInToken.Amount)
 
 	for _, clientCtx := range ab.clientCtxs {
@@ -20,7 +21,7 @@ func (ab *ArbBot) GenerateAndSendToAllRPCEndpoints(profRoute swaproutes.Profitab
 		// Safe seq otherwise it gets increased beforehand
 		seq := ab.sequenceNumber
 		go func() {
-			err := ab.txm.GenerateBroadcastTx(clientCtxPerLoop, ab.currentHeight, seq, arbMsg)
+			err := ab.txm.GenerateBroadcastTx(clientCtxPerLoop, ab.currentHeight, seq, arbMsg, numPools)
 
 			if err != nil {
 				fmt.Printf("\nCould not send tx to:  %v\n", clientCtxPerLoop.Client)

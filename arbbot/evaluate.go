@@ -8,7 +8,7 @@ import (
 func (ab *ArbBot) EvaluateArbitrage(ownId int, maxId int) (profitableRoutes swaproutes.ProfitableArbitrages) {
 	var gasEstimate int64 = 1750
 	//var allRoutes = [][]SwapAmountInRoutesId{ab.ThreeCurrencyRoutes, ab.FourCurrencyRoutes, ab.FiveCurrencyRoutes}
-	var allRoutes = [][]swaproutes.SwapAmountInRoutesId{ab.ps.TwoCurrencyRoutes, ab.ps.ThreeCurrencyRoutes, ab.ps.FourCurrencyRoutes}
+	var allRoutes = [][]swaproutes.SwapAmountInRoutesId{ab.ps.TwoCurrencyRoutes, ab.ps.ThreeCurrencyRoutes, ab.ps.FourCurrencyRoutes, ab.ps.FiveCurrencyRoutes}
 	profitableRoutes = make([]swaproutes.ProfitableArbitrage, 0)
 
 	for i, xCurrencyRoutes := range allRoutes {
