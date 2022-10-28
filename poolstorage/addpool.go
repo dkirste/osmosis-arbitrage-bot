@@ -2,7 +2,7 @@ package poolstorage
 
 import (
 	"fmt"
-	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
 )
 
 func (ps *PoolStorage) addPool(poolToAdd gammtypes.PoolI) {
@@ -15,7 +15,8 @@ func (ps *PoolStorage) addPool(poolToAdd gammtypes.PoolI) {
 		ps.PoolsById[poolId] = poolToAdd
 
 		// Add pool to PoolsByAsset
-		for _, asset := range poolToAdd.GetAllPoolAssets() {
+		//for _, asset := range poolToAdd.GetAllPoolAssets() {
+		for _, asset := range poolToAdd.parsePool() {
 			assetId := ps.AssetDict.GetId(asset.Token.Denom)
 			poolIdByAsset := ps.GetPoolIdInPoolsByAssets(assetId, poolId)
 			ps.PoolsByAsset[assetId][poolIdByAsset] = poolToAdd

@@ -2,7 +2,7 @@ package poolstorage
 
 import (
 	"github.com/dkirste/arbbot/swaproutes"
-	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
 )
 
 type PoolStorage struct {

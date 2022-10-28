@@ -12,9 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	appparams "github.com/osmosis-labs/osmosis/v7/app/params"
-	bpool "github.com/osmosis-labs/osmosis/v7/x/gamm/pool-models/balancer"
-	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	appparams "github.com/osmosis-labs/osmosis/v12/app/params"
+	bpool "github.com/osmosis-labs/osmosis/v12/x/gamm/pool-models/balancer"
+	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"os"
 )

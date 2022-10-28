@@ -5,7 +5,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dkirste/arbbot/swaproutes"
-	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
 )
 
 func calculateSwapExactAmountIn(tokenIn sdk.Coin, tokenOutDenom string, inPoolAsset gammtypes.PoolAsset, outPoolAsset gammtypes.PoolAsset, swapFee sdk.Dec) (tokenOutAmount sdk.Int) {
@@ -45,39 +45,9 @@ func (ab *ArbBot) CalculateMultihopSwapExactAmountIn(routes swaproutes.SwapAmoun
 	return
 }
 
-func (ab *ArbBot) FindOptimumMultihopUOsmo(arbitrageRoutes []swaproutes.SwapAmountInRouteId) (tokenIn sdk.Coin, tokenOutAmount sdk.Int) {
-	var adjustedTokenOutAmount sdk.Int
-	var adjustedProfit sdk.Int
-	var adjustment = sdk.NewInt(1000000)
-	var profit sdk.Int
+func (ab *ArbBot) FindOptimumNew(arbitrageRoutes []swaproutes.SwapAmountInRouteId) (tokenIn sdk.Coin, tokenOutAmount sdk.Int) {
 
-	tokenIn = ab.maxReserve.SubAmount(ab.reserveThreshold)
-	tokenOutAmount = ab.CalculateMultihopSwapExactAmountIn(arbitrageRoutes, tokenIn)
-	profit = tokenOutAmount.Sub(tokenIn.Amount)
-
-	// Move tokenIn left
-	tokenIn = tokenIn.SubAmount(adjustment)
-
-	adjustedTokenOutAmount = ab.CalculateMultihopSwapExactAmountIn(arbitrageRoutes, tokenIn)
-	adjustedProfit = adjustedTokenOutAmount.Sub(tokenIn.Amount)
-
-	for {
-		if profit.LTE(adjustedProfit) || profit.LT(sdk.NewInt(0)) {
-			tokenOutAmount = adjustedTokenOutAmount
-			profit = adjustedProfit
-
-			// Move tokenIn left
-			tokenIn = tokenIn.SubAmount(adjustment)
-
-			// Calculate new point
-			adjustedTokenOutAmount = ab.CalculateMultihopSwapExactAmountIn(arbitrageRoutes, tokenIn)
-			adjustedProfit = adjustedTokenOutAmount.Sub(tokenIn.Amount)
-		} else {
-			break
-		}
-	}
-
-	return tokenIn.AddAmount(adjustment), tokenOutAmount
+	return tokenIn, tokenOutAmount
 }
 
 func (ab *ArbBot) FindOptimumFullScan(arbitrageRoutes []swaproutes.SwapAmountInRouteId) (tokenIn sdk.Coin, tokenOutAmount sdk.Int) {

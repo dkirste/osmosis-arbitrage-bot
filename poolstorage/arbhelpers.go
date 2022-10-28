@@ -1,7 +1,7 @@
 package poolstorage
 
 import (
-	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
 )
 
 func (ps *PoolStorage) GetPoolIdInPoolsByAssets(assetId int, poolId uint64) int {

@@ -2,7 +2,7 @@ package swaproutes
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	gammtypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
 )
 
 type ProfitableArbitrages []ProfitableArbitrage

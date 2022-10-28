@@ -5,7 +5,7 @@ import (
 	"github.com/cosmos/cosmos-sdk/client"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	"github.com/dkirste/arbbot/swaproutes"
-	pooltypes "github.com/osmosis-labs/osmosis/v7/x/gamm/types"
+	pooltypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
 )
 
 func (ab *ArbBot) BuildSwapExactAmountInMsg(clientCtx client.Context, arbitrageRoutes swaproutes.SwapAmountInRoutesId, tokenIn sdk.Coin, tokenOutMinAmount sdk.Int) sdk.Msg {

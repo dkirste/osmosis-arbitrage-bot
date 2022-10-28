@@ -1,7 +1,7 @@
 package poolstorage
 
 import (
-	"github.com/osmosis-labs/osmosis/v7/osmomath"
+	"github.com/osmosis-labs/osmosis/v12/osmomath"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )
