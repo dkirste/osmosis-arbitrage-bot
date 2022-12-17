@@ -12,8 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
+	grpcMachine "github.com/dkirste/arbbot/grpcmachine"
 	appparams "github.com/osmosis-labs/osmosis/v13/app/params"
-	bpool "github.com/osmosis-labs/osmosis/v13/x/gamm/pool-models/balancer"
+	"github.com/osmosis-labs/osmosis/v13/x/gamm/pool-models/balancer"
 	gammtypes "github.com/osmosis-labs/osmosis/v13/x/gamm/types"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"os"
@@ -22,8 +23,10 @@ import (
 func setupInterfaceRegistry(encodingConfig appparams.EncodingConfig) codectypes.InterfaceRegistry {
 	interfaceRegistry := encodingConfig.InterfaceRegistry
 
-	interfaceRegistry.RegisterInterface("/osmosis.gamm.v1beta1.PoolI", (*gammtypes.PoolI)(nil))
-	interfaceRegistry.RegisterImplementations((*gammtypes.PoolI)(nil), &bpool.Pool{})
+	// Register general gamm pool interfaces
+	//interfaceRegistry.RegisterInterface("/osmosis.gamm.v1beta1.PoolI", (*gammtypes.PoolI)(nil), &balancer.Pool{})
+	interfaceRegistry.RegisterInterface("/osmosis.gamm.v1beta1.PoolI", (*grpcMachine.BPoolI)(nil), &balancer.Pool{})
+	//interfaceRegistry.RegisterImplementations((*gammtypes.PoolI)(nil), &balancer.Pool{})
 
 	interfaceRegistry.RegisterInterface("/cosmos.auth.v1beta1.BaseAccount", (*authtypes.AccountI)(nil))
 	interfaceRegistry.RegisterImplementations((*authtypes.AccountI)(nil), &authtypes.BaseAccount{})

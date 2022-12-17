@@ -64,16 +64,18 @@ func (gm *GrpcMachine) QueryAllPools() ([]balancer.Pool, uint64) {
 		return nil, 0
 	}
 
-	var poolI balancer.Pool
 	var pools []balancer.Pool
 
 	for _, pool := range poolRes.Pools {
-		err := gm.InterfaceRegistry.UnpackAny(pool, &poolI)
-		if err != nil {
-			fmt.Printf("ERROR WHILE UNPACKING %v\n", err)
-			return nil, 0
+		if pool.GetTypeUrl() == "/osmosis.gamm.v1beta1.Pool" {
+			bpool := balancer.Pool{}
+			err := bpool.Unmarshal(pool.GetValue())
+			if err != nil {
+				fmt.Println("Failed to unmarshal")
+			}
+			pools = append(pools, bpool)
 		}
-		pools = append(pools, poolI)
+
 	}
 	currentHeight, _ := strconv.ParseUint(header.Get(grpctypes.GRPCBlockHeightHeader)[0], 10, 64)
 
