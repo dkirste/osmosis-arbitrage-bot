@@ -1,6 +1,6 @@
 package swaproutes
 
-import gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
+import gammtypes "github.com/osmosis-labs/osmosis/v13/x/gamm/types"
 
 func (swapRoutes SwapAmountInRoutesId) ConvertToPooltype() (gammtypesSwapRoutes gammtypes.SwapAmountInRoutes) {
 	var gammtypesRoute gammtypes.SwapAmountInRoute

@@ -1,7 +1,7 @@
 package arbbot
 
 import (
-	"github.com/osmosis-labs/osmosis/v12/osmomath"
+	"github.com/osmosis-labs/osmosis/v13/osmomath"
 
 	sdk "github.com/cosmos/cosmos-sdk/types"
 )

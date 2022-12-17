@@ -1,13 +1,13 @@
 package poolstorage
 
 import (
-	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
+	balancer "github.com/osmosis-labs/osmosis/v13/x/gamm/pool-models/balancer"
 )
 
 func (ps *PoolStorage) GetPoolIdInPoolsByAssets(assetId int, poolId uint64) int {
 	// Check if there is no pool registered for the asset
 	if len(ps.PoolsByAsset[assetId]) == 0 {
-		ps.PoolsByAsset[assetId] = make([]gammtypes.PoolI, 1)
+		ps.PoolsByAsset[assetId] = make([]balancer.Pool, 1)
 		return 0
 	}
 
@@ -18,7 +18,7 @@ func (ps *PoolStorage) GetPoolIdInPoolsByAssets(assetId int, poolId uint64) int 
 	}
 
 	// Pool not found in PoolsByAsset -> append new pool
-	ps.PoolsByAsset[assetId] = append(ps.PoolsByAsset[assetId], nil)
+	ps.PoolsByAsset[assetId] = append(ps.PoolsByAsset[assetId], balancer.Pool{})
 	return len(ps.PoolsByAsset[assetId]) - 1
 }
 

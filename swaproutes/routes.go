@@ -2,7 +2,7 @@ package swaproutes
 
 import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
-	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
+	balancer "github.com/osmosis-labs/osmosis/v13/x/gamm/pool-models/balancer"
 )
 
 type ProfitableArbitrages []ProfitableArbitrage
@@ -14,7 +14,7 @@ type ProfitableArbitrage struct {
 
 type SwapAmountInRoutes []SwapAmountInRoute
 type SwapAmountInRoute struct {
-	Pool          gammtypes.PoolI
+	Pool          balancer.Pool
 	TokenOutDenom string
 }
 

@@ -12,9 +12,9 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/tx/signing"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	appparams "github.com/osmosis-labs/osmosis/v12/app/params"
-	bpool "github.com/osmosis-labs/osmosis/v12/x/gamm/pool-models/balancer"
-	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
+	appparams "github.com/osmosis-labs/osmosis/v13/app/params"
+	bpool "github.com/osmosis-labs/osmosis/v13/x/gamm/pool-models/balancer"
+	gammtypes "github.com/osmosis-labs/osmosis/v13/x/gamm/types"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"os"
 )
@@ -45,7 +45,7 @@ func (ab *ArbBot) setupClientContext(rpcclient *rpchttp.HTTP, nodeIp string, arm
 		fmt.Println(err)
 	}
 
-	kb := keyring.NewInMemory(ab.ProtoCodec)
+	kb := keyring.NewInMemory()
 	err = kb.ImportPrivKey("arb", armor, passphrase)
 	if err != nil {
 		panic("Error while importing private key")
@@ -78,10 +78,8 @@ func (ab *ArbBot) setupClientContext(rpcclient *rpchttp.HTTP, nodeIp string, arm
 		TxConfig:          ab.EncodingConfig.TxConfig, // CUSTOM
 		AccountRetriever:  authtypes.AccountRetriever{},
 		NodeURI:           "", // CUSTOM
-		FeePayer:          nil,
 		FeeGranter:        nil,
 		Viper:             nil,
-		IsAux:             false,
 		LegacyAmino:       nil,
 	}
 

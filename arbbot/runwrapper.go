@@ -7,7 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	grpcMachine "github.com/dkirste/arbbot/grpcmachine"
 	"github.com/dkirste/arbbot/swaproutes"
-	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
+	gammtypes "github.com/osmosis-labs/osmosis/v13/x/gamm/types"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"math"
 )

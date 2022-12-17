@@ -5,10 +5,11 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
 	"github.com/dkirste/arbbot/swaproutes"
-	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
+	balancer "github.com/osmosis-labs/osmosis/v13/x/gamm/pool-models/balancer"
+	gammtypes "github.com/osmosis-labs/osmosis/v13/x/gamm/types"
 )
 
-func calculateSwapExactAmountIn(tokenIn sdk.Coin, tokenOutDenom string, inPoolAsset gammtypes.PoolAsset, outPoolAsset gammtypes.PoolAsset, swapFee sdk.Dec) (tokenOutAmount sdk.Int) {
+func calculateSwapExactAmountIn(tokenIn sdk.Coin, tokenOutDenom string, inPoolAsset balancer.PoolAsset, outPoolAsset balancer.PoolAsset, swapFee sdk.Dec) (tokenOutAmount sdk.Int) {
 
 	// TODO: Understand if we are handling swap fee consistently,
 	// with the global swap fee and the pool swap fee
@@ -26,13 +27,13 @@ func calculateSwapExactAmountIn(tokenIn sdk.Coin, tokenOutDenom string, inPoolAs
 }
 
 func (ab *ArbBot) CalculateMultihopSwapExactAmountIn(routes swaproutes.SwapAmountInRoutesId, tokenIn sdk.Coin) (tokenOutAmount sdk.Int) {
-	var inPoolAsset gammtypes.PoolAsset
-	var outPoolAsset gammtypes.PoolAsset
+	var inPoolAsset balancer.PoolAsset
+	var outPoolAsset balancer.PoolAsset
 	var swapFee sdk.Dec
 	for _, route := range routes {
 		inPoolAsset, _ = ab.ps.PoolsById[route.PoolId].GetPoolAsset(tokenIn.Denom)
 		outPoolAsset, _ = ab.ps.PoolsById[route.PoolId].GetPoolAsset(route.TokenOutDenom)
-		swapFee = ab.ps.PoolsById[route.PoolId].GetPoolSwapFee()
+		swapFee = ab.ps.PoolsById[route.PoolId].GetPoolParams().GetPoolSwapFee()
 		tokenOutAmount = calculateSwapExactAmountIn(
 			tokenIn,             // tokenIn
 			route.TokenOutDenom, // tokenOutDenom
@@ -61,7 +62,7 @@ func (ab *ArbBot) FindOptimumFullScan(arbitrageRoutes []swaproutes.SwapAmountInR
 		Denom:  "uosmo",
 		Amount: adjustment,
 	}
-	for tmpTokenIn.IsLTE(ab.maxReserve) {
+	for tmpTokenIn.IsLT(ab.maxReserve) {
 		tmpTokenOutAmount = ab.CalculateMultihopSwapExactAmountIn(arbitrageRoutes, tmpTokenIn)
 		tmpProfit = tmpTokenOutAmount.Sub(tmpTokenIn.Amount)
 		profitsArray = append(profitsArray, tmpProfit)
@@ -103,7 +104,7 @@ func (ab *ArbBot) swapExactAmountIn(poolId uint64, tokenIn sdk.Coin, tokenOutDen
 		outPoolAsset.Token.Amount.ToDec(),
 		outPoolAsset.Weight.ToDec(),
 		tokenIn.Amount.ToDec(),
-		pool.GetPoolSwapFee(),
+		pool.GetPoolParams().GetPoolSwapFee(),
 	).TruncateInt()
 	if tokenOutAmount.LTE(sdk.ZeroInt()) {
 		return sdk.Int{}, sdkerrors.Wrapf(gammtypes.ErrInvalidMathApprox, "token amount is zero or negative")

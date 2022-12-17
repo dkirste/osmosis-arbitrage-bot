@@ -4,7 +4,7 @@ import (
 	"fmt"
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	sdkerrors "github.com/cosmos/cosmos-sdk/types/errors"
-	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
+	oldgammtypes "github.com/osmosis-labs/osmosis/v13/x/gamm/types"
 )
 
 func (ps *PoolStorage) swapExactAmountIn(poolId uint64, tokenIn sdk.Coin, tokenOutDenom string, tokenOutMinAmount sdk.Int) (tokenOutAmount sdk.Int, err error) {
@@ -18,14 +18,14 @@ func (ps *PoolStorage) swapExactAmountIn(poolId uint64, tokenIn sdk.Coin, tokenO
 		outPoolAsset.Token.Amount.ToDec(),
 		outPoolAsset.Weight.ToDec(),
 		tokenIn.Amount.ToDec(),
-		pool.GetPoolSwapFee(),
+		pool.GetSwapFee(sdk.Context{}),
 	).TruncateInt()
 	if tokenOutAmount.LTE(sdk.ZeroInt()) {
-		return sdk.Int{}, sdkerrors.Wrapf(gammtypes.ErrInvalidMathApprox, "token amount is zero or negative")
+		return sdk.Int{}, sdkerrors.Wrapf(oldgammtypes.ErrInvalidMathApprox, "token amount is zero or negative")
 	}
 
 	if tokenOutAmount.LT(tokenOutMinAmount) {
-		return sdk.Int{}, sdkerrors.Wrapf(gammtypes.ErrLimitMinAmount, "%s token is lesser than min amount", outPoolAsset.Token.Denom)
+		return sdk.Int{}, sdkerrors.Wrapf(oldgammtypes.ErrLimitMinAmount, "%s token is lesser than min amount", outPoolAsset.Token.Denom)
 	}
 
 	inPoolAsset.Token.Amount = inPoolAsset.Token.Amount.Add(tokenIn.Amount)

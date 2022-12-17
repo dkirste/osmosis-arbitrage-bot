@@ -10,7 +10,7 @@ import (
 	"github.com/dkirste/arbbot/poolstorage"
 	"github.com/dkirste/arbbot/swaproutes"
 	"github.com/dkirste/arbbot/txmachine"
-	appparams "github.com/osmosis-labs/osmosis/v12/app/params"
+	appparams "github.com/osmosis-labs/osmosis/v13/app/params"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"sync"
 )

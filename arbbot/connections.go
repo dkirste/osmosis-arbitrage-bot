@@ -27,7 +27,7 @@ func closeGRPCConn(grpcConn *grpc.ClientConn) {
 }
 
 func openRPCConn(target string) *rpchttp.HTTP {
-	rpcConn, err := rpchttp.New(target)
+	rpcConn, err := rpchttp.New(target, "/websocket")
 	if err != nil {
 		fmt.Println(err)
 	}

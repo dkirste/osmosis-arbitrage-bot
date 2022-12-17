@@ -2,12 +2,12 @@ package poolstorage
 
 import (
 	"github.com/dkirste/arbbot/swaproutes"
-	gammtypes "github.com/osmosis-labs/osmosis/v12/x/gamm/types"
+	balancer "github.com/osmosis-labs/osmosis/v13/x/gamm/pool-models/balancer"
 )
 
 type PoolStorage struct {
-	PoolsById           []gammtypes.PoolI
-	PoolsByAsset        [][]gammtypes.PoolI
+	PoolsById           []balancer.Pool
+	PoolsByAsset        [][]balancer.Pool
 	TwoCurrencyRoutes   []swaproutes.SwapAmountInRoutesId
 	ThreeCurrencyRoutes []swaproutes.SwapAmountInRoutesId
 	FourCurrencyRoutes  []swaproutes.SwapAmountInRoutesId
@@ -18,7 +18,7 @@ type PoolStorage struct {
 }
 
 func (ps *PoolStorage) Setup(numberOfPools int) {
-	ps.PoolsById = make([]gammtypes.PoolI, numberOfPools)
-	ps.PoolsByAsset = make([][]gammtypes.PoolI, numberOfPools)
+	ps.PoolsById = make([]balancer.Pool, numberOfPools)
+	ps.PoolsByAsset = make([][]balancer.Pool, numberOfPools)
 	ps.ArbRoutesById = make([][]swaproutes.SwapAmountInRoutesId, numberOfPools)
 }
