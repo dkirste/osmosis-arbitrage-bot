@@ -7,6 +7,7 @@ import (
 	sdk "github.com/cosmos/cosmos-sdk/types"
 	grpcMachine "github.com/dkirste/arbbot/grpcmachine"
 	"github.com/dkirste/arbbot/swaproutes"
+	balancer "github.com/osmosis-labs/osmosis/v13/x/gamm/pool-models/balancer"
 	gammtypes "github.com/osmosis-labs/osmosis/v13/x/gamm/types"
 	rpchttp "github.com/tendermint/tendermint/rpc/client/http"
 	"math"
@@ -37,7 +38,7 @@ func (ab *ArbBot) GenerateAndSendToAllRPCEndpoints(profRoute swaproutes.Profitab
 }
 
 func (ab *ArbBot) PoolUpdateLoop(grpcm grpcMachine.GrpcMachine, heightCh chan<- uint64) (crashed bool) {
-	var latestPools []gammtypes.PoolI
+	var latestPools []balancer.Pool
 	var latestHeight uint64
 	for {
 		defer func() {

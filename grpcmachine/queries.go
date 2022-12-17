@@ -8,8 +8,8 @@ import (
 	"github.com/cosmos/cosmos-sdk/types/query"
 	authtypes "github.com/cosmos/cosmos-sdk/x/auth/types"
 	banktypes "github.com/cosmos/cosmos-sdk/x/bank/types"
-	"github.com/osmosis-labs/osmosis/v13/x/gamm/types"
-	pooltypes "github.com/osmosis-labs/osmosis/v13/x/gamm/types"
+	balancer "github.com/osmosis-labs/osmosis/v13/x/gamm/pool-models/balancer"
+	gammtypes "github.com/osmosis-labs/osmosis/v13/x/gamm/types"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/metadata"
 	"strconv"
@@ -31,9 +31,9 @@ func (gm *GrpcMachine) QueryAccountBalance(address string, denom string) (balanc
 }
 
 func (gm *GrpcMachine) QueryNumberOfPools() (uint64, error) {
-	poolClient := pooltypes.NewQueryClient(gm.Conn)
+	poolClient := gammtypes.NewQueryClient(gm.Conn)
 
-	poolRes, err := poolClient.NumPools(context.Background(), &pooltypes.QueryNumPoolsRequest{})
+	poolRes, err := poolClient.NumPools(context.Background(), &gammtypes.QueryNumPoolsRequest{})
 	if err != nil {
 		//fmt.Println("Error while executing request (QueryNumberOfPools)")
 		return 0, err
@@ -42,8 +42,8 @@ func (gm *GrpcMachine) QueryNumberOfPools() (uint64, error) {
 	return poolRes.NumPools, nil
 }
 
-func (gm *GrpcMachine) QueryAllPools() ([]pooltypes.PoolI, uint64) {
-	poolClient := pooltypes.NewQueryClient(gm.Conn)
+func (gm *GrpcMachine) QueryAllPools() ([]balancer.Pool, uint64) {
+	poolClient := gammtypes.NewQueryClient(gm.Conn)
 
 	numberOfPools, err := gm.QueryNumberOfPools()
 	if err != nil {
@@ -52,7 +52,7 @@ func (gm *GrpcMachine) QueryAllPools() ([]pooltypes.PoolI, uint64) {
 
 	var header metadata.MD
 
-	poolRes, err := poolClient.Pools(context.Background(), &pooltypes.QueryPoolsRequest{Pagination: &query.PageRequest{
+	poolRes, err := poolClient.Pools(context.Background(), &gammtypes.QueryPoolsRequest{Pagination: &query.PageRequest{
 		Key:        nil,
 		Offset:     0,
 		Limit:      numberOfPools,
@@ -64,8 +64,8 @@ func (gm *GrpcMachine) QueryAllPools() ([]pooltypes.PoolI, uint64) {
 		return nil, 0
 	}
 
-	var poolI types.PoolI
-	var pools []types.PoolI
+	var poolI balancer.Pool
+	var pools []balancer.Pool
 
 	for _, pool := range poolRes.Pools {
 		err := gm.InterfaceRegistry.UnpackAny(pool, &poolI)
@@ -107,12 +107,12 @@ func (gm *GrpcMachine) QueryAccountSequence(address string) (seq uint64) {
 }
 
 func (gm *GrpcMachine) QueryCurrentHeight() (currentHeight uint64) {
-	poolClient := pooltypes.NewQueryClient(gm.Conn)
+	poolClient := gammtypes.NewQueryClient(gm.Conn)
 
 	// Get header from grpc via grpc option
 	var header metadata.MD
 
-	poolRes, err := poolClient.NumPools(context.Background(), &pooltypes.QueryNumPoolsRequest{}, grpc.Header(&header))
+	poolRes, err := poolClient.NumPools(context.Background(), &gammtypes.QueryNumPoolsRequest{}, grpc.Header(&header))
 	_ = poolRes
 	if err != nil {
 		panic(err)
