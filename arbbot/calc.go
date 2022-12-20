@@ -46,7 +46,33 @@ func (ab *ArbBot) CalculateMultihopSwapExactAmountIn(routes swaproutes.SwapAmoun
 	return
 }
 
-func (ab *ArbBot) FindOptimumNew(arbitrageRoutes []swaproutes.SwapAmountInRouteId) (tokenIn sdk.Coin, tokenOutAmount sdk.Int) {
+func (ab *ArbBot) FindOptimumBisection(arbitrageRoutes []swaproutes.SwapAmountInRouteId) (tokenIn sdk.Coin, tokenOutAmount sdk.Int) {
+	var h = sdk.NewInt(10000) // Bisectioning 0.01 osmos left and right (h)
+	var leftIn = sdk.Coin{
+		Denom:  "uosmo",
+		Amount: sdk.NewInt(100000), // using 0.1 osmo for minimum input.
+	}
+	var rightIn = ab.maxReserve
+	var midIn = sdk.Coin{
+		Denom:  "uosmo",
+		Amount: leftIn.Amount.Add(rightIn.Amount).Quo(sdk.NewInt(2)), // (left + right) / 2
+	}
+
+	var midLeftProfit sdk.Int
+	var midRightProfit sdk.Int
+	var iterations = 20
+	for i := 0; i < iterations; i++ {
+		midIn.Amount = leftIn.Amount.Add(rightIn.Amount).Quo(sdk.NewInt(2))
+		midLeftProfit = ab.CalculateMultihopSwapExactAmountIn(arbitrageRoutes, midIn.SubAmount(h)).Sub(midIn.SubAmount(h).Amount)  // mid - h  || out - in
+		midRightProfit = ab.CalculateMultihopSwapExactAmountIn(arbitrageRoutes, midIn.AddAmount(h)).Sub(midIn.AddAmount(h).Amount) // mid + h  || out - in
+		if midRightProfit.GT(midLeftProfit) {
+			leftIn = midIn
+		} else {
+			rightIn = midIn
+		}
+	}
+	tokenIn = midIn
+	tokenOutAmount = ab.CalculateMultihopSwapExactAmountIn(arbitrageRoutes, midIn)
 
 	return tokenIn, tokenOutAmount
 }
