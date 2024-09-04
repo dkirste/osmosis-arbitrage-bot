@@ -1,9 +1,6 @@
 # Osmosis Arbitrage Bot
 
----
-
-
-> This repository contains a Golang-based arbitrage bot designed for the Osmosis DEX. The bot continuously monitors osmosis liquidity pools, identifies arbitrage opportunities, and executes profitable trades.
+This repository contains a Golang-based arbitrage bot designed for the Osmosis DEX. The bot continuously monitors osmosis liquidity pools, identifies arbitrage opportunities, and executes profitable trades.
 
 ## Project Structure
 The project is organized into several key components, each responsible for a specific aspect of the arbitrage bot's functionality. Below is an overview of each component:
@@ -67,7 +64,7 @@ func GetPrivateKey(stage string) (address string, privateKeyArmor string, privat
 }
 ```
 
-3. Add your grpcNodes and rpcNodes to the `cmd/main.go` that they can be used to access the Osmosis blockchain for retrieving pool data and sending transactions. You can add multiple grpcNodes and rpcNodes, they will all be used in parallel to decrease latency in retrieving new blocks and broadcasting transactions.
+2. Add your grpcNodes and rpcNodes to the `cmd/main.go` that they can be used to access the Osmosis blockchain for retrieving pool data and sending transactions. You can add multiple grpcNodes and rpcNodes, they will all be used in parallel to decrease latency in retrieving new blocks and broadcasting transactions.
 
 
 ### Running the Bot
